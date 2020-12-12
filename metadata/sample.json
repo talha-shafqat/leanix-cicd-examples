@@ -1,0 +1,36 @@
+{
+	"connectorType":"leanix",
+	"connectorId": "leanix-continuous-integration-connector",
+	"connectorVersion": "1.0.0",
+	"lxVersion": "1.0.0",
+	"processingDirection": "inbound",
+	"processingMode": "full",
+	"customFields": {},
+	"content": [
+        {
+            "type": "Microservice",
+            "id": "MS-123",
+            "data": {
+                "name": "My Microservice",
+                "stage": "DEV",
+                "team": "Team Awesome",
+                "links": {
+                    "wiki": "https://wiki"
+                },
+                "subscriptions": [
+                    {"user": "test.user@meshlab.de",
+                    "role": "Product Owner",
+                    "type": "Responsible"}
+                ]
+                
+            }
+        },
+        {
+          "type": "Team",
+          "id": "Team Awesome",
+          "data": {
+              "name": "Team Awesome"
+          }
+      }
+    ]
+}
