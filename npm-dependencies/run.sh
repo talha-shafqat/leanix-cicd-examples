@@ -7,6 +7,9 @@ echo $TOKEN
 
 export URL="https://${HOST}/services/cicd-connector/v1/dependencies"
 
-echo $URL
-
-curl $URL -F source=npm -F externalId=$MS_ID -F api_token=$TOKEN -F host=$HOST -F file=@dependencies.json  
+curl -X POST \
+      "$URL?source=npm&externalId=$MS_ID" \
+      -H 'content-type: multipart/form-data' \
+      -F "api_token=${TOKEN}" \
+      -F "host=${HOST}" \
+      -F 'file=@dependencies.json'
