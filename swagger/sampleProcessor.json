@@ -1,0 +1,91 @@
+{
+	"processors": [
+		{
+			"processorType": "inboundFactSheet",
+			"processorName": "0_createAPI.json@/Users/dominikrose/dev/leanix-cloud-beta/data/processors/ms/swagger (# '1')",
+			"processorDescription": "0_createAPI.json@/Users/dominikrose/dev/leanix-cloud-beta/data/processors/ms/swagger (# '1')",
+			"type": "Interface",
+			"filter": {
+				"advanced": "${content.type == 'API'}"
+			},
+			"identifier": {
+				"external": {
+					"id": {
+						"expr": "${content.id}"
+					},
+					"type": {
+						"expr": "externalId"
+					}
+				}
+			},
+			"run": 0,
+			"updates": [
+				{
+					"key": {
+						"expr": "name"
+					},
+					"values": [
+						{
+							"expr": "${content.id}"
+						}
+					]
+				}
+			],
+			"enabled": true
+		},
+		{
+			"processorType": "inboundDocument",
+			"processorName": "1_createDocuments.json@/Users/dominikrose/dev/leanix-cloud-beta/data/processors/ms/swagger (# '2')",
+			"processorDescription": "1_createDocuments.json@/Users/dominikrose/dev/leanix-cloud-beta/data/processors/ms/swagger (# '2')",
+			"identifier": {
+				"external": {
+					"id": {
+						"expr": "${content.id}"
+					},
+					"type": {
+						"expr": "externalId"
+					}
+				}
+			},
+			"filter": {
+				"exactType": "API"
+			},
+			"run": 1,
+			"updates": [
+				{
+					"key": {
+						"expr": "name"
+					},
+					"values": [
+						{
+							"expr": "${integration.valueOfForEach.name}"
+						}
+					]
+				},
+				{
+					"key": {
+						"expr": "url"
+					},
+					"values": [
+						{
+							"expr": "${integration.valueOfForEach.url}"
+						}
+					]
+				},
+				{
+					"key": {
+						"expr": "description"
+					},
+					"values": [
+						{
+							"expr": "${integration.valueOfForEach.description}"
+						}
+					]
+				}
+			],
+			"enabled": true,
+			"forEach": "${data.operations}"
+		}
+	],
+	"logLdifUrl": true
+}
