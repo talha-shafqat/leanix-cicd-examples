@@ -34,9 +34,41 @@
 			"enabled": true
 		},
 		{
+			"processorType": "inboundRelation",
+			"processorName": "1_apiToMicroservice.json@/Users/dominikrose/dev/leanix-cloud-beta/data/processors/ms/swagger (# '2')",
+			"processorDescription": "1_apiToMicroservice.json@/Users/dominikrose/dev/leanix-cloud-beta/data/processors/ms/swagger (# '2')",
+			"type": "rel",
+			"filter": {
+				"advanced": "${content.type == 'API'}"
+			},
+			"from": {
+				"external": {
+					"id": {
+						"expr": "${content.id}"
+					},
+					"type": {
+						"expr": "externalId"
+					}
+				}
+			},
+			"to": {
+				"external": {
+					"id": {
+						"expr": "${data.microserviceId}"
+					},
+					"type": {
+						"expr": "externalId"
+					}
+				}
+			},
+			"run": 1,
+			"updates": [],
+			"enabled": true
+		},
+		{
 			"processorType": "inboundDocument",
-			"processorName": "1_createDocuments.json@/Users/dominikrose/dev/leanix-cloud-beta/data/processors/ms/swagger (# '2')",
-			"processorDescription": "1_createDocuments.json@/Users/dominikrose/dev/leanix-cloud-beta/data/processors/ms/swagger (# '2')",
+			"processorName": "1_createDocuments.json@/Users/dominikrose/dev/leanix-cloud-beta/data/processors/ms/swagger (# '3')",
+			"processorDescription": "1_createDocuments.json@/Users/dominikrose/dev/leanix-cloud-beta/data/processors/ms/swagger (# '3')",
 			"identifier": {
 				"external": {
 					"id": {
@@ -87,5 +119,12 @@
 			"forEach": "${data.operations}"
 		}
 	],
+	"credentials": {
+		"useTechnicalUser": true
+	},
+	"dataProvider": {
+		"url": "${header.customFields.url}",
+		"type": "azureStorage"
+	},
 	"logLdifUrl": true
 }
