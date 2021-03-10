@@ -1,0 +1,22 @@
+rabbitmq_vhosts:
+    
+- vhost: dataservice
+  queues:
+  - queuename: queue-1
+  - queuename: queue-2
+  - queuename: queue-3
+- vhost: customerservice
+  exchanges: 
+  - exchangename: exchange-1
+    bind_to:
+    - destination: queue-1
+- vhost: employeeservice
+  exchanges: 
+  - exchangename: exchange-2
+    bind_to:
+    - destination: queue-2
+- vhost: applicantservice
+  exchanges: 
+  - exchangename: exchange-3
+    bind_to:
+    - destination: queue-3

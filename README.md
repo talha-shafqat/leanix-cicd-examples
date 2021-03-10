@@ -5,6 +5,14 @@ The examples in this repository help you to connect your CI/CD pipeline into Lea
 The following examples are provided:
 
 
+## Ansible
+Uploads an example Ansible definition file into Microservice Intelligence - example can be fetched from https://docs.ansible.com/ansible/latest/collections/ansible/builtin/uri_module.html. It requires a three step execution:
+
+* Upload the Integration API processor into your workspace, see `https://dev.leanix.net/docs/setup``
+* Execute `python yaml2Ldif.py' to extract a valid ldif (be mindful to add your workspace id - see https://dev.leanix.net/docs/authentication#section-generate-api-tokens)
+* Upload the LDIF via the Integration API
+
+
 ## Gradle Dependencies
 Uploads example gradle dependencies into Microservice Intelligence. It requires a Microservice ID which is present as external ID in your workspace. The sample gradle dependency file can be extracted by calling
 

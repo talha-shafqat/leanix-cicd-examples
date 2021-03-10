@@ -1,0 +1,147 @@
+{
+	"deletionScope": {
+		"factSheets": []
+	},
+	"processors": [
+		{
+			"processorType": "inboundFactSheet",
+			"processorName": "0_createInterface.json@/Users/dominikrose/dev/leanix-cloud-beta/data/processors/ms/ansible/0_fact_sheets (# '1')",
+			"processorDescription": "0_createInterface.json@/Users/dominikrose/dev/leanix-cloud-beta/data/processors/ms/ansible/0_fact_sheets (# '1')",
+			"type": "Interface",
+			"filter": {
+				"exactType": "queue"
+			},
+			"identifier": {
+				"external": {
+					"id": {
+						"expr": "${content.id}"
+					},
+					"type": {
+						"expr": "externalId"
+					}
+				}
+			},
+			"run": 0,
+			"updates": [
+				{
+					"key": {
+						"expr": "name"
+					},
+					"values": [
+						{
+							"expr": "${content.id}"
+						}
+					]
+				}
+			],
+			"enabled": true
+		},
+		{
+			"processorType": "inboundFactSheet",
+			"processorName": "0_createMicroService.json@/Users/dominikrose/dev/leanix-cloud-beta/data/processors/ms/ansible/0_fact_sheets (# '2')",
+			"processorDescription": "0_createMicroService.json@/Users/dominikrose/dev/leanix-cloud-beta/data/processors/ms/ansible/0_fact_sheets (# '2')",
+			"type": "Application",
+			"filter": {
+				"exactType": "service"
+			},
+			"identifier": {
+				"external": {
+					"id": {
+						"expr": "${content.id}"
+					},
+					"type": {
+						"expr": "externalId"
+					}
+				}
+			},
+			"run": 0,
+			"updates": [
+				{
+					"key": {
+						"expr": "name"
+					},
+					"values": [
+						{
+							"expr": "${content.id}"
+						}
+					]
+				}
+			],
+			"enabled": true
+		},
+		{
+			"processorType": "inboundRelation",
+			"processorName": "1_interfaceToConsumerMicroservice.json@/Users/dominikrose/dev/leanix-cloud-beta/data/processors/ms/ansible/1_relations (# '3')",
+			"processorDescription": "1_interfaceToConsumerMicroservice.json@/Users/dominikrose/dev/leanix-cloud-beta/data/processors/ms/ansible/1_relations (# '3')",
+			"type": "relInterfaceToConsumerApplication",
+			"filter": {
+				"exactType": "exchange"
+			},
+			"from": {
+				"external": {
+					"id": {
+						"expr": "${data.queue}"
+					},
+					"type": {
+						"expr": "externalId"
+					}
+				}
+			},
+			"to": {
+				"external": {
+					"id": {
+						"expr": "${data.service}"
+					},
+					"type": {
+						"expr": "externalId"
+					}
+				}
+			},
+			"run": 1,
+			"updates": [],
+			"enabled": true
+		},
+		{
+			"processorType": "inboundRelation",
+			"processorName": "1_interfaceToProviderMicroservice.json@/Users/dominikrose/dev/leanix-cloud-beta/data/processors/ms/ansible/1_relations (# '4')",
+			"processorDescription": "1_interfaceToProviderMicroservice.json@/Users/dominikrose/dev/leanix-cloud-beta/data/processors/ms/ansible/1_relations (# '4')",
+			"type": "relInterfaceToProviderApplication",
+			"filter": {
+				"exactType": "queue"
+			},
+			"from": {
+				"external": {
+					"id": {
+						"expr": "${content.id}"
+					},
+					"type": {
+						"expr": "externalId"
+					}
+				}
+			},
+			"to": {
+				"external": {
+					"id": {
+						"expr": "${data.service}"
+					},
+					"type": {
+						"expr": "externalId"
+					}
+				}
+			},
+			"run": 1,
+			"updates": [],
+			"enabled": true
+		}
+	],
+	"variables": {},
+	"credentials": {
+		"useTechnicalUser": true
+	},
+	"dataProvider": {
+		"url": "${header.customFields.url}",
+		"type": "azureStorage"
+	},
+	"processingThreads": 1,
+	"logLdifUrl": true
+}
