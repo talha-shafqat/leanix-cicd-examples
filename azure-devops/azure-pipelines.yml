@@ -1,0 +1,23 @@
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/java
+
+# See how to define variables for the python script here:
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch#set-variables-in-pipeline
+
+trigger:
+- master
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+    goals: 'package'
+- task: PythonScript@0
+  inputs:
+    scriptSource: 'filePath'
+    scriptPath: '$(Build.SourcesDirectory)/pipeline2Ldif.py'
+  env:
+    ADO_AUTH: $(ADO_AUTH)
+    ADO_ORGANIZATION: $(ADO_ORGANIZATION)
+    ADO_PROJECT: $(ADO_PROJECT)
+    WORKSPACE_ID: $(WORKSPACE_ID)
