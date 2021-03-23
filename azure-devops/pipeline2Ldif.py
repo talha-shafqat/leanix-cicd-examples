@@ -7,7 +7,6 @@ from requests.auth import HTTPBasicAuth
 ADO_AUTH = os.getenv('ADO_AUTH')
 ADO_ORGANIZATION = os.getenv('ADO_ORGANIZATION')
 ADO_PROJECT = os.getenv('ADO_PROJECT')
-WORKSPACE_ID = os.getenv('WORKSPACE_ID')
 
 
 def pipeline2ldif():
@@ -18,6 +17,7 @@ def pipeline2ldif():
     # The name of the Azure DevOps Project (can be the name or the ID)
     add_project = ADO_PROJECT
 
+    # This is the token provided by Azure Dev Ops
     auth = HTTPBasicAuth(
         '', ADO_AUTH)
 
@@ -121,7 +121,7 @@ def pipeline2ldif():
         "connectorVersion": "1.0",
         "processingMode": "full",
         "lxVersion": "1.0.0",
-        "lxWorkspace": workspace,
+        "lxWorkspace": "workspaceId",
         "description": "Azure DevOps Connector",
         "content": pipeline_configs}
     print(json.dumps(ldif, indent=2))
