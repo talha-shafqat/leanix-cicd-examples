@@ -1,5 +1,7 @@
 import json
 import requests
+import time
+import base64
 import os
 from requests.auth import HTTPBasicAuth
 
@@ -9,10 +11,10 @@ ADO_ORGANIZATION = os.getenv('ADO_ORGANIZATION')
 ADO_PROJECT = os.getenv('ADO_PROJECT')
 LEANIX_DOMAIN = os.getenv('LEANIX_DOMAIN')
 LEANIX_API_TOKEN = os.getenv('LEANIX_API_TOKEN')
+WORKSPACE_ID = "" # setup to pass along ID in other function
 
 
 def pipeline2ldif():
-    workspace = WORKSPACE_ID
 
     # The name of the Azure DevOps Organization
     ado_organization = ADO_ORGANIZATION
@@ -90,9 +92,10 @@ def pipeline2ldif():
     # Add up findings from each API to create LDIF
 
     ldif = {
-        "connectorType": "azure-devops-pipelines-connector",
-        "connectorId": "azure-devops-pipelines-connector",
-        "connectorVersion": "1.0",
+        "connectorType": "leanix",
+        "connectorId": "leanix-azureDevOps-connector",
+        "connectorVersion": "1.0.0",
+        "processingDirection": "inbound",
         "processingMode": "full",
         "lxVersion": "1.0.0",
         "lxWorkspace": "workspaceId",
@@ -120,12 +123,24 @@ def request_url():
 def api_token():
     return access_configs()['apitoken']
 
+def getAccessTokenJson(access_token):
+  payload_part = access_token.split('.')[1]
+  # fix missing padding for this base64 encoded string.
+  # If number of bytes is not dividable by 4, append '=' until it is.
+  missing_padding = len(payload_part) % 4
+  if missing_padding != 0:
+    payload_part += '='* (4 - missing_padding)
+  payload = json.loads(base64.b64decode(payload_part))
+  return payload
+
 def authenticate():
     response = requests.post(auth_url(), auth=('apitoken', api_token()),
                              data={'grant_type': 'client_credentials'})
 
     response.raise_for_status()
     access_token = response.json()['access_token']
+    global WORKSPACE_ID
+    WORKSPACE_ID = getAccessTokenJson(access_token)['principal']['permission']['workspaceId']
 
     return {'Authorization': 'Bearer ' + access_token, 'Content-Type': 'application/json'}
 
@@ -180,6 +195,7 @@ def run_integration_api():
     header = authenticate()
 
     ldif_data = pipeline2ldif()
+    ldif_data["lxWorkspace"] = WORKSPACE_ID
 
     connector_id = ldif_data['connectorId']
     connector_version = ldif_data['connectorVersion']
