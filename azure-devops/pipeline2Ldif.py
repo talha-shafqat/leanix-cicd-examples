@@ -7,6 +7,8 @@ from requests.auth import HTTPBasicAuth
 ADO_AUTH = os.getenv('ADO_AUTH')
 ADO_ORGANIZATION = os.getenv('ADO_ORGANIZATION')
 ADO_PROJECT = os.getenv('ADO_PROJECT')
+LEANIX_DOMAIN = os.getenv('LEANIX_DOMAIN')
+LEANIX_API_TOKEN = os.getenv('LEANIX_API_TOKEN')
 
 
 def pipeline2ldif():
@@ -27,34 +29,6 @@ def pipeline2ldif():
 
     res = requests.get(request_url, auth=auth)
     pipeline_list = res.json()
-
-    ####
-    # Artifact test
-    ####
-    # add_pipe_line_id = "2"
-    # artifactURL = 'https://dev.azure.com/' + ado_organization + '/' + add_project + \
-    #     '/_apis/pipelines/' + add_pipe_line_id + \
-    #     '/runs/1/artifacts?artifactName=""&api-version=6.0-preview.1'
-    # # https: // dev.azure.com/{organization}/{project}/
-    # _apis/pipelines/{pipelineId}/runs/{runId}/artifacts?artifactName={artifactName}
-    #  &api-version=6.0-preview.1
-    # artifactResponse = requests.get(artifactURL, auth=auth)
-    # artifactJSON = artifactResponse.json()
-    # print(artifactJSON)
-
-    ####
-    # Build test
-    ####
-    # addBuildId = "2"
-    # addArtifactName = "azure-pipelines"
-    # buildURL = 'https://dev.azure.com/' + ado_organization + '/' + add_project + \
-    #     '/_apis/build/builds/' + addBuildId + '/artifacts?artifactName=' + \
-    #     addArtifactName + '&api-version=6'
-    # # https://dev.azure.com/{organization}/{project}/_apis/build/builds/
-    # {buildId}/artifacts?artifactName={artifactName}&api-version=6.
-    # buildResponse = requests.get(buildURL, auth=auth)
-    # buildJSON = buildResponse
-    # print(buildJSON)
 
     pipeline_configs = []
     for pipeline_item in pipeline_list['value']:
@@ -124,8 +98,101 @@ def pipeline2ldif():
         "lxWorkspace": "workspaceId",
         "description": "Azure DevOps Connector",
         "content": pipeline_configs}
-    print(json.dumps(ldif, indent=2))
+    # print(json.dumps(ldif, indent=2))
+    return(ldif)
+
+def access_configs():
+    access_data = {
+      "domain": LEANIX_DOMAIN,
+      "apitoken": LEANIX_API_TOKEN
+    }
+
+    return access_data
+
+def auth_url():
+    domain = access_configs()['domain']
+    return f"https://{domain}/services/mtm/v1/oauth2/token"
+
+def request_url():
+    domain = access_configs()['domain']
+    return f"https://{domain}/services/integration-api/v1/"
+
+def api_token():
+    return access_configs()['apitoken']
+
+def authenticate():
+    response = requests.post(auth_url(), auth=('apitoken', api_token()),
+                             data={'grant_type': 'client_credentials'})
+
+    response.raise_for_status()
+    access_token = response.json()['access_token']
+
+    return {'Authorization': 'Bearer ' + access_token, 'Content-Type': 'application/json'}
+
+def call_post(endpoint, header, data=False):
+    response = requests.post(
+        url=request_url() + endpoint, headers=header, data=data)
+    response.raise_for_status()
+    return response
+
+def call_get(endpoint, header):
+    response = requests.get(url=request_url() + endpoint, headers=header)
+    response.raise_for_status()
+    return response
+
+def create_run(run_config, header):
+    result = call_post(endpoint="synchronizationRuns",
+                       data=json.dumps(run_config), header=header)
+    return json.loads(result.text)['id']
+
+def start_run(run_id, header):
+    start_run_endpoint = 'synchronizationRuns/%s/start' % (run_id)
+    result = call_post(endpoint=start_run_endpoint, header=header)
+    return result.status_code
+
+def check_run_status(run_id, header, status_response=False):
+    print('checking status')
+    status_endpoint = 'synchronizationRuns/%s/status' % (run_id)
+    status_response = call_get(status_endpoint, header)
+    status_response = json.loads(status_response.text)['status']
+    print(status_response)
+    if status_response != 'FINISHED':
+        time.sleep(5)
+        return check_run_status(run_id, status_response=status_response, header=header)
+    else:
+        return True
+
+def fetch_results(run_id, header):
+    results_endpoint = 'synchronizationRuns/%s/results' % (run_id)
+    results_response = call_get(results_endpoint, header)
+    return json.loads(results_response.text)
+
+def handle_run(ldif_data, processing_direction, header):
+
+    run_id = create_run(ldif_data, header)
+    if start_run(run_id, header) == 200:
+        if check_run_status(run_id, header) and processing_direction == 'outbound':
+            return fetch_results(run_id, header)
+
+
+def run_integration_api():
+
+    header = authenticate()
+
+    ldif_data = pipeline2ldif()
+
+    connector_id = ldif_data['connectorId']
+    connector_version = ldif_data['connectorVersion']
+    processing_direction = ldif_data['processingDirection']
+
+    if processing_direction == 'outbound':
+        run_results = handle_run(
+            ldif_data=ldif_data, processing_direction='outbound', header=header)
+        with open('_'.join([connector_id + connector_version]) + '.json', 'w') as outfile:
+            json.dump(run_results, outfile, ensure_ascii=False, indent=4)
+    else:
+        handle_run(ldif_data, processing_direction='inbound', header=header)
 
 
 # Initiate script
-pipeline2ldif()
+run_integration_api()
